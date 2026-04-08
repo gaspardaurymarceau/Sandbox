@@ -1,9 +1,0 @@
-:BASE
-foo
-Bar
-BAZ
-
-:RECIPE
-alpha=foo+2Bar
-ZaB=alpha+BAZ+2foo
-mimimimimi=ZaB+foo+2BAZ
