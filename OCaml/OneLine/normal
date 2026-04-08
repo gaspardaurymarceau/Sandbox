@@ -1,0 +1,95 @@
+(* Question 1 *)
+
+let rec reconstruct_path (solution : solution) (dest_x : int) (dest_y : int) =
+  let rec aux x y acc = match List.nth (List.nth solution y) x with
+    | Start -> (x , y)::acc
+    | Not_reached -> []
+    | From (nxtX , nxtY) -> aux  nxtX nxtY ((x,y)::acc)
+  in match aux dest_x dest_y [] with
+  | [] -> None
+  | l -> Some l
+;;
+
+
+(* Question 2 *)
+
+let list_moves board_size x y =
+  let poss : (int * int) list= [(x-2 , y-1) ;
+                                (x-2 , y+1) ;
+                                (x+2 , y-1) ;
+                                (x+2 , y+1) ;
+                                (x-1 , y-2) ;
+                                (x-1 , y+2) ;
+                                (x+1 , y-2) ;
+                                (x+1 , y+2)
+                               ]
+  in let rec check = function
+      | [] -> []
+      | ((x' , y') as h)::t -> if x' >= 0 &&
+                                  x' < board_size &&
+                                  y' >= 0 &&
+                                  y' < board_size
+          then h::(check t) else check t
+  in check poss
+;;
+
+
+(* Question 3 *)
+
+let rec update_list_nth l n v = match l with
+  | [] -> []
+  | h::t -> if n <= 0 then v::t else h::(update_list_nth t (n - 1) v)
+;;
+
+
+(* Question 4 *)
+
+let update_solution solution x y v =
+  update_list_nth solution y (update_list_nth (List.nth solution y) x v) 
+;;
+
+
+(* Question 5 *) 
+
+let explore_one_step board_size solution to_explore = 
+  let rec check coo s ntx = function
+    | [] -> (s , ntx)
+    | (x , y)::t -> match List.nth (List.nth solution y) x with
+      | Not_reached -> check coo (update_solution s x y (From ((fst coo) , (snd coo)))) ((x,y)::ntx) t 
+      | _ -> check coo s ntx t
+  in
+  let rec addNoDoubles e = function
+    | [] -> [e]
+    | (h::t) as l when h = e -> l
+    | h::t -> h::(addNoDoubles e t)
+  in
+  let rec merge l1 l2 = match l1 with
+    | [] -> l2
+    | h::t -> merge t (addNoDoubles h l2)
+  in
+  (* tx = new to explore for next step, argument of function is the current list to explore*)
+  let rec aux sol tx = function 
+    | [] -> (sol , tx)
+    | (x , y)::t -> let tt = list_moves board_size x y in
+        let newSol , nTx = check (x , y) sol [] tt in aux newSol (merge nTx tx) t
+  in aux solution [] to_explore
+;;
+
+let rec makeList e = function
+  | 0 -> []
+  | n -> e::(makeList e (n - 1))
+;;
+
+let makeBoard n sX sY= update_solution (makeList (makeList Not_reached n) n) sX sY Start ;;
+  
+
+(* Question 6 *) 
+let knight_explore board_size start_x start_y =
+  let newBoard = makeBoard board_size start_x start_y in
+  let toExp = [(start_x , start_y)] in
+  let rec aux b = function
+    | [] -> b
+    | tx -> let nb , nTx = explore_one_step board_size b tx in aux nb nTx
+  in aux newBoard toExp
+;;
+
