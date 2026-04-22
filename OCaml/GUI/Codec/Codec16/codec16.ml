@@ -94,11 +94,11 @@ let headLabel = W.html  ~h:150 "<font color=\"blue\">This tool takes a <b>positi
 Both bases should be written as base 10 integers, and should be between 2 and 16 (both included)<br><br>
 Accepted digits for the integer (non-base) input are :</font><br><font color=\"green\">0123456789AaBbCcDdEeFf" ;;
 let numLabel = W.label ~align:Draw.Min "Input your number here :" ;;
-let inputNum = W.text_input ~prompt:"Number" ~max_size:maxInputSize () ;;
+let inputNum = W.text_input ~prompt:"Number" ~max_len:maxInputSize () ;;
 let baseInLabel = W.label ~align:Draw.Min "Input its base here :" ;;
-let inputBase = W.text_input ~prompt:"Input base" ~max_size:maxInputSize () ;;
+let inputBase = W.text_input ~prompt:"Input base" ~max_len:maxInputSize () ;;
 let baseOutLabel = W.label ~align:Draw.Min "Input the desired base for the output here :" ;;
-let outputBase = W.text_input ~prompt:"Output base" ~max_size:maxInputSize () ;;
+let outputBase = W.text_input ~prompt:"Output base" ~max_len:maxInputSize () ;;
 let output = W.text_display ~h:50 ~w:(outputSize / 2) "Output" ;;
 let action  _ =
                 (W.get_text inputNum , W.get_text inputBase , W.get_text outputBase)
