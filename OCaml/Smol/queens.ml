@@ -13,7 +13,7 @@ let print_sol (size : int) (sol : int list) : unit =
         in
         let sep : string = "+" ^ (repeat "---+" size) ^ "\n" in
         print_string sep;
-        List.iter (fun x -> print_string ((aux x 0) ^ "\n" ^ sep)) sol;
+        List.iter (fun x -> print_string ("|" ^ (aux x 0) ^ "\n" ^ sep)) sol;
         print_string "\n"
 
 let possible (size : int) (cur : int list) =

@@ -64,9 +64,9 @@ let template : grid = [|
 |];;
 
 let smol_template : grid = [|
-        [|false; false; false|];
-        [|true; true; false|];
-        [|false; true; false|]
+        [|true; true; true|];
+        [|true; false; true|];
+        [|false; false; false|]
 |] in
 
-main template
+main smol_template
