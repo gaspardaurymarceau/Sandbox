@@ -251,9 +251,34 @@ let remove_random_wall (lab : labyrinth) : unit =
   in
   aux ()
 
-
-let rec make (x : int) (y : int) =
+(*
+An inefficient (and possibly - although unfathomably unlikely - never-ending) way to generate a random labyrinth.
+*)
+let make_old (x : int) (y : int) =
   let lab = init x y in
+  while not (exists_path lab 0 0 (x - 1) (y - 1)) do
+    remove_random_wall lab
+  done;
+  lab
+
+let make (x : int) (y : int) =
+  let lab = init x y in
+  let walls_unshuffled = List.flatten (
+    List.init x (
+      fun i -> List.flatten (
+        List.init y (fun j ->
+          [
+            lab.(i).(j).n;
+            lab.(i).(j).w;
+            lab.(i).(j).s;
+            lab.(i).(j).e;
+          ]
+        )
+      )
+    )
+  ) in
+  let walls = Array.to_list (let tmp = Array.of_list walls_unshuffled in Array.shuffle Random.int tmp; tmp) in
+
   while not (exists_path lab 0 0 (x - 1) (y - 1)) do
     remove_random_wall lab
   done;
