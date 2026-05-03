@@ -4,8 +4,7 @@ type cell = { n : bool ref;
               w : bool ref; };;
 
 type labyrinth = cell array array;;
-
-Random.self_init ();;
+Random.self_init;;
 
 let print_svg (s : string)  : unit =
         match Sys.command "touch ocaml_print_svg.svg ; echo \"\" > ocaml_print_svg.svg" with
@@ -194,7 +193,6 @@ let rec gen_path (b : Buffer.t) (w : int) (h : int) : (int * int) list -> unit =
                     "%\" fill=\"green\" stroke=\"green\" />")
       ;
       gen_path b w h t
-  
 
 let to_svg_with_path (lab : labyrinth) (sol : (int * int) list) : string =
   let w = Array.length lab in
@@ -217,10 +215,7 @@ let exists_path lab xd yd xe ye =
   try let _ = find_path lab xd yd xe ye in true with
   | Impossible_labyrinth -> false
 
-let remove_random_wall (lab : labyrinth) : unit =
-  let w, h = (Array.length lab), (Array.length lab.(0)) in 
-  
-  let aux_path x y d =
+let is_path_before_rm lab x y d =
     (* Assuming that there is a square in direction d relatively to x and y *)
     let xe, ye = match d with
       | 0 -> x, y - 1
@@ -230,21 +225,23 @@ let remove_random_wall (lab : labyrinth) : unit =
       | _ -> failwith "Bomboclaat !!!!"
     in
     exists_path lab x y xe ye
-  in
+
+let remove_random_wall (lab : labyrinth) : unit =
+  let w, h = (Array.length lab), (Array.length lab.(0)) in
   
   let rec aux () =
     let x, y = (Random.int w), (Random.int h) in
     match Random.int 4 with
-    | 0 -> if y = 0 || (not !(lab.(x).(y).n)) || aux_path x y 0
+    | 0 -> if y = 0 || (not !(lab.(x).(y).n)) || is_path_before_rm lab x y 0
         then aux ()
         else lab.(x).(y).n := false
-    | 1 -> if  x = (w - 1) || (not !(lab.(x).(y).e)) || aux_path x y 1
+    | 1 -> if  x = (w - 1) || (not !(lab.(x).(y).e)) || is_path_before_rm lab x y 1
         then aux ()
         else lab.(x).(y).e := false
-    | 2 -> if y = (h - 1) || (not !(lab.(x).(y).s)) || aux_path x y 2
+    | 2 -> if y = (h - 1) || (not !(lab.(x).(y).s)) || is_path_before_rm lab x y 2
         then aux ()
         else lab.(x).(y).s := false
-    | 3 -> if x = 0 || (not !(lab.(x).(y).w)) || aux_path x y 3
+    | 3 -> if x = 0 || (not !(lab.(x).(y).w)) || is_path_before_rm lab x y 3
         then aux ()
         else lab.(x).(y).w := false
     | _ -> failwith "Bomboclaat !"
@@ -261,27 +258,44 @@ let make_old (x : int) (y : int) =
   done;
   lab
 
-let make (x : int) (y : int) =
-  let lab = init x y in
+let make (w : int) (h : int) =
+  let lab = init w h in
   let walls_unshuffled = List.flatten (
-    List.init x (
+    List.init w (
       fun i -> List.flatten (
-        List.init y (fun j ->
-          [
-            lab.(i).(j).n;
-            lab.(i).(j).w;
-            lab.(i).(j).s;
-            lab.(i).(j).e;
-          ]
+        List.init h (fun j -> List.init 4 (fun k -> (i, j, k))
         )
       )
     )
+  )
+  in let rm_wall x y = function
+    | 0 -> if y = 0 || is_path_before_rm lab x y 0
+        then ()
+        else lab.(x).(y).n := false
+    | 1 -> if  x = (w - 1) || is_path_before_rm lab x y 1
+        then ()
+        else lab.(x).(y).e := false
+    | 2 -> if y = (h - 1) || is_path_before_rm lab x y 2
+        then ()
+        else lab.(x).(y).s := false
+    | 3 -> if x = 0 || is_path_before_rm lab x y 3
+        then ()
+        else lab.(x).(y).w := false
+    | _ -> failwith "Bomboclaat !"
+        in
+  let walls = Array.to_list (
+    let tmp = Array.of_list walls_unshuffled in
+    Array.shuffle ~rand:Random.int tmp;
+    tmp
   ) in
-  let walls = Array.to_list (let tmp = Array.of_list walls_unshuffled in Array.shuffle Random.int tmp; tmp) in
 
-  while not (exists_path lab 0 0 (x - 1) (y - 1)) do
-    remove_random_wall lab
-  done;
+  let rec aux (l : (int * int * int) list) =
+    if (exists_path lab 0 0 (w - 1) (h - 1)) then ()
+    else match l with
+  | [] -> failwith "Wierdly, removing every wall from the labyrinth does not make it solvable..."
+  | (x, y, d)::t -> rm_wall x y d; aux t
+  in
+  aux walls;
   lab
 ;;
 
