@@ -86,7 +86,6 @@ public class Main {
             return true;
         }
         laby.poserUnCaillou();
-        System.out.println(possible());
         for (char c : possible()) {
             sol.addLast(c);
             laby.deplacer(c);
@@ -102,7 +101,8 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        laby = new Labyrinthe("labyrinthe1.txt");
+        if (args.length != 1) throw new Error("This program excepts the name of the labyrinth file as an argument.");
+        laby = new Labyrinthe(args[0]);
         sol = new LinkedList<Character>();
         System.out.println(explore());
     }
